@@ -71,24 +71,26 @@ build_spark_container () {
 }
 
 build_spark_hadoop_container () {
-  tee Dockerfile <<-'EOF'
-  FROM docker.io/vvaks/spark:2.4.0-0.0.0
-  RUN mkdir -p /opt/hadoop/conf
-  RUN mkdir /opt/ozone/
-  ADD hadoop/hadoop-dist/target/hadoop-3.3.0-SNAPSHOT /opt/hadoop/
-  ADD hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT /opt/ozone/
 
-  RUN cp /opt/hadoop/share/hadoop/hdfs/*.jar /opt/spark/jars/
-  RUN cp /opt/hadoop/share/hadoop/hdfs/lib/*.jar /opt/spark/jars/
-  RUN cp /opt/hadoop/share/hadoop/common/*.jar /opt/spark/jars/
-  RUN cp /opt/hadoop/share/hadoop/common/lib/*.jar /opt/spark/jars/
-  RUN cp /opt/hadoop/share/hadoop/mapreduce/*.jar /opt/spark/jars/
-  RUN cp /opt/hadoop/share/hadoop/yarn/*.jar /opt/spark/jars/
-  RUN cp /opt/hadoop/share/hadoop/yarn/lib/*.jar /opt/spark/jars/
+tee Dockerfile <<-'EOF'
+FROM docker.io/vvaks/spark:2.4.0-0.0.0
+RUN mkdir -p /opt/hadoop/conf
+RUN mkdir /opt/ozone/
 
-  ENV HADOOP_CONF_DIR=/opt/hadoop/conf
-  ENV SPARK_EXTRA_CLASSPATH=/opt/hadoop/conf:/opt/hadoop/share/hadoop/hdfs/*:/opt/hadoop/share/hadoop/hdfs/lib/*:/opt/hadoop/share/hadoop/yarn/*:/opt/hadoop/share/hadoop/yarn/lib/*:/opt/hadoop/share/hadoop/mapreduce/*:/opt/hadoop/share/hadoop/mapreduce/lib/*:/opt/ozone/share/ozone/lib/ratis-thirdparty-misc-0.2.0.jar:/opt/ozone/share/ozone/lib/ratis-proto-0.4.0-a8c4ca0-SNAPSHOT.jar:/opt/ozone/share/ozone/lib/hadoop-ozone-filesystem-0.4.0-SNAPSHOT.jar
-  EOF
+ADD hadoop/hadoop-dist/target/hadoop-3.3.0-SNAPSHOT /opt/hadoop/
+ADD hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT /opt/ozone/
+
+RUN cp /opt/hadoop/share/hadoop/hdfs/*.jar /opt/spark/jars/
+RUN cp /opt/hadoop/share/hadoop/hdfs/lib/*.jar /opt/spark/jars/
+RUN cp /opt/hadoop/share/hadoop/common/*.jar /opt/spark/jars/
+RUN cp /opt/hadoop/share/hadoop/common/lib/*.jar /opt/spark/jars/
+RUN cp /opt/hadoop/share/hadoop/mapreduce/*.jar /opt/spark/jars/
+RUN cp /opt/hadoop/share/hadoop/yarn/*.jar /opt/spark/jars/
+RUN cp /opt/hadoop/share/hadoop/yarn/lib/*.jar /opt/spark/jars/
+
+ENV HADOOP_CONF_DIR=/opt/hadoop/conf
+ENV SPARK_EXTRA_CLASSPATH=/opt/hadoop/conf:/opt/hadoop/share/hadoop/hdfs/*:/opt/hadoop/share/hadoop/hdfs/lib/*:/opt/hadoop/share/hadoop/yarn/*:/opt/hadoop/share/hadoop/yarn/lib/*:/opt/hadoop/share/hadoop/mapreduce/*:/opt/hadoop/share/hadoop/mapreduce/lib/*:/opt/ozone/share/ozone/lib/ratis-thirdparty-misc-0.2.0.jar:/opt/ozone/share/ozone/lib/ratis-proto-0.4.0-a8c4ca0-SNAPSHOT.jar:/opt/ozone/share/ozone/lib/hadoop-ozone-filesystem-0.4.0-SNAPSHOT.jar
+EOF
 
   docker build -t vvaks/spark:2.4.0-3.3.0-SNAPSHOT .
   docker push vvaks/spark:2.4.0-3.3.0-SNAPSHOT
