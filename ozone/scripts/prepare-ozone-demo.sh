@@ -36,17 +36,18 @@ build_ozone_container () {
   cd hadoop/hadoop-ozone/dist
 
   tee start-scm.sh <<-'EOF'
-  #!/bin/bash
   bin/ozone scm --init
   bin/ozone scm
   EOF
 
   tee start-om.sh <<-'EOF'
-  #!/bin/bash
   bin/ozone om --init
   bin/ozone om
   EOF
-
+  
+  chmod 755 start-om.sh
+  chmod 755 start-scm.sh
+  
   echo "ADD --chown=hadoop start-scm.sh /opt/hadoop" >> Dockerfile
   echo "ADD --chown=hadoop start-om.sh /opt/hadoop" >> Dockerfile
 
