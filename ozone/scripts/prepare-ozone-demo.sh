@@ -14,7 +14,7 @@ install_utils () {
 
   yum install -y apache-maven
   
-  yum install epel-release
+  yum install -y epel-release
   yum -y install python-pip
   pip install awscli
 }
