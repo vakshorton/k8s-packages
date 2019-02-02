@@ -112,12 +112,12 @@ deploy_ozone_k8s () {
 }
 
 create_ozone_bucket_aws_cli () {
-  touch 	~/.aws/credentials
+  mkdir ~/.aws
+  touch ~/.aws/credentials
   echo "[default]" >> ~/.aws/credentials
   echo "aws_access_key_id = $1" >> ~/.aws/credentials
   echo "aws_secret_access_key = $1" >> ~/.aws/credentials
 
-  aws s3api --endpoint-url http://$DATANODE0:30878 create-bucket --bucket=$2
   aws s3api --endpoint-url http://$DATANODE0:30878 create-bucket --bucket=$2
 }
 
@@ -141,8 +141,13 @@ echo "export OZONEMANAGER0=$OZONEMANAGER0" >> ~/.bash_profile
 
 create_ozone_bucket_aws_cli "volume01" "warehouse"
 
-#cd spark-2.4.0-bin-without-hadoop
-#bin/spark-shell --master k8s://https://$(hostname -f):6443 --conf spark.kubernetes.container.image=vvaks/spark:2.4.0-3.3.0-SNAPSHOT  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark --conf spark.hadoop.fs.o3fs.impl=org.apache.hadoop.fs.ozone.OzoneFileSystem --conf spark.hadoop.ozone.om.address=$OZONEMANAGER0:30862 --conf spark.kubernetes.container.image.pullPolicy=Always
+echo "DEMO SPARK ON K8S <--> OZONE"
+echo "cd spark-2.4.0-bin-without-hadoop"
+echo "bin/spark-shell --master k8s://https://$(hostname -f):6443 --conf spark.kubernetes.container.image=vvaks/spark:2.4.0-3.3.0-SNAPSHOT  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark --conf spark.hadoop.fs.o3fs.impl=org.apache.hadoop.fs.ozone.OzoneFileSystem --conf spark.hadoop.ozone.om.address=$OZONEMANAGER0:30862 --conf spark.kubernetes.container.image.pullPolicy=Always"
+
+echo "run the following at spark shell to simulate distributed read/write to Ozone using OzoneFileSystem client
+echo "sc.parallelize(Array(1,2,3,4,5)).saveAsTextFile('o3fs://warehouse.s3volume01/folder01')"
+echo "spark.read.textFile('o3fs://warehouse.s3volume01/folder01').select('value').show"
 
 #from external cluster
 #fs.s3a.endpoint=xxx:30878
@@ -160,8 +165,3 @@ create_ozone_bucket_aws_cli "volume01" "warehouse"
 #--conf spark.hadoop.fs.s3a.secret.key=volume01 \
 #--conf spark.hadoop.fs.s3a.path.style.access=true \
 #--conf spark.hadoop.fs.s3a.connection.ssl.enabled=false \
-
-# run the following at spark shell to simulate distributed read/write to Ozone using OzoneFileSystem client
-# sc.parallelize(Array(1,2,3,4,5)).saveAsTextFile("o3fs://warehouse.s3volume01/folder01")
-# spark.read.textFile("o3fs://warehouse.s3volume01/folder01").select("value").show
-
