@@ -107,16 +107,17 @@ spark_inject_hadoop_jars () {
 }
 
 deploy_ozone_k8s () {
-  wget https://raw.githubusercontent.com/vakshorton/k8s-packages/master/ozone/ozone-k8s-pacakge.yaml
-  
+  wget https://raw.githubusercontent.com/vakshorton/k8s-packages/master/ozone/resources/ozone-k8s-package.yaml
   kubectl create -f ozone-k8s-package.yaml
-
 }
 
 create_ozone_bucket_aws_cli () {
+  touch 	~/.aws/credentials
+  echo "[default]" >> ~/.aws/credentials
   echo "aws_access_key_id = $1" >> ~/.aws/credentials
   echo "aws_secret_access_key = $1" >> ~/.aws/credentials
 
+  aws s3api --endpoint-url http://$DATANODE0:30878 create-bucket --bucket=$2
   aws s3api --endpoint-url http://$DATANODE0:30878 create-bucket --bucket=$2
 }
 
@@ -132,6 +133,11 @@ deploy_ozone_k8s
 export DATANODE0=$(kubectl get pods datanode-0 -o wide -o json|grep nodeName|grep -Po ': "[\S]+'|grep -Po '[^":,^\s]+')
 export S3GATEWAY0=$(kubectl get pods datanode-0 -o wide -o json|grep nodeName|grep -Po ': "[\S]+'|grep -Po '[^":,^\s]+')
 export OZONEMANAGER0=$(kubectl get pods ozonemanager-0 -o wide -o json|grep nodeName|grep -Po ': "[\S]+'|grep -Po '[^":,^\s]+')
+
+echo "export DATANODE0=$DATANODE0" >> ~/.bash_profile
+echo "export S3GATEWAY0=$S3GATEWAY0" >> ~/.bash_profile
+echo "export OZONEMANAGER0=$OZONEMANAGER0" >> ~/.bash_profile
+. ~/.bash_profile
 
 create_ozone_bucket_aws_cli "volume01" "warehouse"
 
@@ -156,6 +162,6 @@ create_ozone_bucket_aws_cli "volume01" "warehouse"
 #--conf spark.hadoop.fs.s3a.connection.ssl.enabled=false \
 
 # run the following at spark shell to simulate distributed read/write to Ozone using OzoneFileSystem client
-# sc.parallelize(Array(1,2,3,4,5)).saveAsTextFile("o3fs://warehouse.volume01/folder02/file61")
-# spark.read.textFile("o3fs://warehouse.s3volume01/folder01/file1").select("value").show
+# sc.parallelize(Array(1,2,3,4,5)).saveAsTextFile("o3fs://warehouse.s3volume01/folder01")
+# spark.read.textFile("o3fs://warehouse.s3volume01/folder01").select("value").show
 
