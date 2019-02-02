@@ -104,7 +104,6 @@ spark_inject_hadoop_jars () {
   yes | cp -f hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-thirdparty-misc-0.2.0.jar spark-2.4.0-bin-without-hadoop/jars/
   yes | cp -f hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-proto-0.4.0-f283ffa-SNAPSHOT.jar spark-2.4.0-bin-without-hadoop/jars/
 
-  cd spark-2.4.0-bin-without-hadoop
 }
 
 deploy_ozone_k8s () {
