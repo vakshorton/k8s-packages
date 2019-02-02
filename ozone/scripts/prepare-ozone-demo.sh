@@ -22,17 +22,13 @@ install_utils () {
 build_hadoop () {
   git clone https://github.com/apache/hadoop
   cd hadoop
-  #mvn clean install package -DskipTests -Pdist,hdds -Dtar -Dmaven.javadoc.skip=true
-  mvn clean install package -Phdds -DskipTests=true -Dmaven.javadoc.skip=true -Pdist -Dtar -DskipShade -am -pl :hadoop-ozone-dist
+  mvn clean install package -DskipTests -Pdist,hdds -Dtar -Dmaven.javadoc.skip=true
+  #mvn clean install package -Phdds -DskipTests=true -Dmaven.javadoc.skip=true -Pdist -Dtar -DskipShade -am -pl :hadoop-ozone-dist
   cd ..
 }
 
 build_ozone_container () {
-  git clone https://github.com/apache/hadoop
-  cd hadoop
-  #mvn clean install package -DskipTests -Pdist,hdds -Dtar -Dmaven.javadoc.skip=true
-  mvn clean install -Phdds -DskipTests=true -Dmaven.javadoc.skip=true -Pdist -Dtar -DskipShade -am -pl :hadoop-ozone-dist
-
+	
   cd hadoop/hadoop-ozone/dist
 
 tee start-scm.sh <<-'EOF'
