@@ -1,0 +1,194 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: scm
+spec:
+  ports:
+  - name: "scm-ui"
+    port: 9876
+    targetPort: 9876
+    nodePort: 30876
+  - name: "scm-client"
+    port: 30860
+    targetPort: 30860
+    nodePort: 30860
+  - name: "scm-datanode"
+    port: 9861
+    targetPort: 9861
+    nodePort: 30861
+  - name: "scm-block-client"
+    port: 30863
+    targetPort: 30863
+    nodePort: 30863
+  selector:
+    app: scm
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ozonemanager
+  name: ozonemanager
+spec:
+  ports:
+  - name: "om-http"
+    port: 30874
+    targetPort: 30874
+    nodePort: 30874
+  - name: "om-rpc"
+    port: 30862
+    targetPort: 30862
+    nodePort: 30862
+  selector:
+    app: ozonemanager
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: datanode
+  name: datanode
+spec:
+  ports:
+  - name: "datanode-http"
+    port: 9880
+    targetPort: 9880
+    nodePort: 30880
+  - name: "datanode-rpc1"
+    port: 9858
+    targetPort: 9858
+  - name: "datanode-rpc2"
+    port: 9859
+    targetPort: 9859
+  - name: "s3g-rest"
+    port: 9878
+    targetPort: 9878
+    nodePort: 30878  
+  selector:
+    app: datanode
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: scm
+spec:
+  serviceName: scm
+  selector:
+    matchLabels:
+      app: scm
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: scm
+    spec:
+      containers:
+        - image: vvaks/hadoop-runner:ozone-0.4.0
+          name: scm
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9876
+            - containerPort: 30860
+            - containerPort: 9861
+            - containerPort: 30863
+          args:
+            - /opt/hadoop/start-scm.sh
+          envFrom:
+            - configMapRef:
+                name: ozone-config
+--- 
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ozonemanager
+spec:
+  serviceName: ozonemanager
+  selector:
+    matchLabels:
+      app: ozonemanager
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ozonemanager
+    spec:
+      containers:
+        - image: vvaks/hadoop-runner:ozone-0.4.0
+          name: ozonemanager
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 30874
+            - containerPort: 30862
+          args:
+            - /opt/hadoop/start-om.sh
+          envFrom:
+            - configMapRef:
+                name: ozone-config
+---        
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: datanode
+spec:
+  serviceName: datanode
+  selector:
+    matchLabels:
+      app: datanode
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: datanode
+    spec:
+      containers:
+        - image: vvaks/hadoop-runner:ozone-0.4.0
+          name: datanode
+          ports:
+            - containerPort: 9880
+          args:
+            - /opt/hadoop/bin/ozone
+            - datanode
+          envFrom:
+            - configMapRef:
+                name: ozone-config
+        - image: vvaks/hadoop-runner:ozone-0.4.0
+          name: s3g-datanode
+          ports:
+            - containerPort: 9878
+          args:
+            - /opt/hadoop/bin/ozone
+            - s3g
+          envFrom:
+            - configMapRef:
+                name: ozone-config
+---                        
+apiVersion: v1
+data:
+  CORE-SITE.XML_fs.s3a.connection.ssl.enabled: "false"
+  CORE-SITE.XML_fs.s3a.path.style.access: "true"
+  HDFS-SITE.XML_rpc.metrics.percentiles.intervals: 60,300
+  HDFS-SITE.XML_rpc.metrics.quantile.enable: "true"
+  HDFS-SITE.XML_dfs.client.use.datanode.hostname: "true"
+  HDFS-SITE.XML_dfs.datanode.use.datanode.hostname: "true"
+  OZONE-SITE.XML_hdds.datanode.dir: /data/hdds
+  OZONE-SITE.XML_ozone.enabled: "true"
+  OZONE-SITE.XML_ozone.handler.type: distributed
+  OZONE-SITE.XML_ozone.metadata.dirs: /data/metadata
+  OZONE-SITE.XML_ozone.om.address: ozonemanager-0.ozonemanager:30862
+  OZONE-SITE.XML_ozone.om.http-address: ozonemanager-0.ozonemanager:30874
+  OZONE-SITE.XML_ozone.replication: "1"
+  OZONE-SITE.XML_ozone.scm.block.client.address: scm-0.scm:30863
+  OZONE-SITE.XML_ozone.scm.datanode.address: scm-0.scm:9861
+  OZONE-SITE.XML_ozone.scm.client.address: scm-0.scm:30860
+  OZONE-SITE.XML_ozone.scm.datanode.id: /data/datanode.id
+  OZONE-SITE.XML_ozone.scm.names: scm-0.scm
+  LOG4J.PROPERTIES_log4j.rootLogger: "INFO, stdout"
+  LOG4J.PROPERTIES_log4j.appender.stdout: "org.apache.log4j.ConsoleAppender"
+  LOG4J.PROPERTIES_log4j.appender.stdout.layout: "org.apache.log4j.PatternLayout"
+  LOG4J.PROPERTIES_log4j.appender.stdout.layout.ConversionPattern: "%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"
+kind: ConfigMap
+metadata:
+  name: ozone-config
