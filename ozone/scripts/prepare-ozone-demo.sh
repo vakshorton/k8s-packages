@@ -23,7 +23,7 @@ build_hadoop () {
   git clone https://github.com/apache/hadoop
   cd hadoop
   #mvn clean install package -DskipTests -Pdist,hdds -Dtar -Dmaven.javadoc.skip=true
-  #mvn clean install package -Phdds -DskipTests=true -Dmaven.javadoc.skip=true -Pdist -Dtar -DskipShade -am -pl :hadoop-ozone-dist
+  mvn clean install package -Phdds -DskipTests=true -Dmaven.javadoc.skip=true -Pdist -Dtar -DskipShade -am -pl :hadoop-ozone-dist
   cd ..
 }
 
@@ -35,15 +35,15 @@ build_ozone_container () {
 
   cd hadoop/hadoop-ozone/dist
 
-  tee start-scm.sh <<-'EOF'
-  bin/ozone scm --init
-  bin/ozone scm
-  EOF
+tee start-scm.sh <<-'EOF'
+bin/ozone scm --init
+bin/ozone scm
+EOF
 
-  tee start-om.sh <<-'EOF'
-  bin/ozone om --init
-  bin/ozone om
-  EOF
+tee start-om.sh <<-'EOF'
+bin/ozone om --init
+bin/ozone om
+EOF
   
   chmod 755 start-om.sh
   chmod 755 start-scm.sh
@@ -116,11 +116,11 @@ deploy_ozone_k8s () {
 
 }
 
-create_ozone_volume_aws_cli () {
-  echo "aws_access_key_id = volume01" >> ~/.aws/credentials
-  echo "aws_secret_access_key = volume01" >> ~/.aws/credentials
+create_ozone_bucket_aws_cli () {
+  echo "aws_access_key_id = $1" >> ~/.aws/credentials
+  echo "aws_secret_access_key = $1" >> ~/.aws/credentials
 
-  aws s3api --endpoint-url http://$DATANODE0:30878 create-bucket --bucket=warehouse
+  aws s3api --endpoint-url http://$DATANODE0:30878 create-bucket --bucket=$2
 }
 
 install_utils
@@ -136,10 +136,10 @@ export DATANODE0=$(kubectl get pods datanode-0 -o wide -o json|grep nodeName|gre
 export S3GATEWAY0=$(kubectl get pods datanode-0 -o wide -o json|grep nodeName|grep -Po ': "[\S]+'|grep -Po '[^":,^\s]+')
 export OZONEMANAGER0=$(kubectl get pods ozonemanager-0 -o wide -o json|grep nodeName|grep -Po ': "[\S]+'|grep -Po '[^":,^\s]+')
 
-create_ozone_volume_aws_cli
+create_ozone_bucket_aws_cli "volume01" "warehouse"
 
-cd spark-2.4.0-bin-without-hadoop
-bin/spark-shell --master k8s://https://$(hostname -f):6443 --conf spark.kubernetes.container.image=vvaks/spark:2.4.0-3.3.0-SNAPSHOT  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark --conf spark.hadoop.fs.o3fs.impl=org.apache.hadoop.fs.ozone.OzoneFileSystem --conf spark.hadoop.ozone.om.address=$OZONEMANAGER0:30862 --conf spark.kubernetes.container.image.pullPolicy=Always
+#cd spark-2.4.0-bin-without-hadoop
+#bin/spark-shell --master k8s://https://$(hostname -f):6443 --conf spark.kubernetes.container.image=vvaks/spark:2.4.0-3.3.0-SNAPSHOT  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark --conf spark.hadoop.fs.o3fs.impl=org.apache.hadoop.fs.ozone.OzoneFileSystem --conf spark.hadoop.ozone.om.address=$OZONEMANAGER0:30862 --conf spark.kubernetes.container.image.pullPolicy=Always
 
 #from external cluster
 #fs.s3a.endpoint=xxx:30878
