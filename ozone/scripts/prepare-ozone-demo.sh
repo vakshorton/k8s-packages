@@ -141,7 +141,9 @@ echo "export OZONEMANAGER0=$OZONEMANAGER0" >> ~/.bash_profile
 
 create_ozone_bucket_aws_cli "volume01" "warehouse"
 
+echo "********************************************************************************************************"
 echo "DEMO SPARK ON K8S <--> OZONE"
+echo "********************************************************************************************************"
 echo "cd spark-2.4.0-bin-without-hadoop"
 echo "bin/spark-shell --master k8s://https://$(hostname -f):6443 --conf spark.kubernetes.container.image=vvaks/spark:2.4.0-3.3.0-SNAPSHOT  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark --conf spark.hadoop.fs.o3fs.impl=org.apache.hadoop.fs.ozone.OzoneFileSystem --conf spark.hadoop.ozone.om.address=$OZONEMANAGER0:30862 --conf spark.kubernetes.container.image.pullPolicy=Always"
 echo "********************************************************************************************************"
