@@ -144,10 +144,11 @@ create_ozone_bucket_aws_cli "volume01" "warehouse"
 echo "DEMO SPARK ON K8S <--> OZONE"
 echo "cd spark-2.4.0-bin-without-hadoop"
 echo "bin/spark-shell --master k8s://https://$(hostname -f):6443 --conf spark.kubernetes.container.image=vvaks/spark:2.4.0-3.3.0-SNAPSHOT  --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark --conf spark.hadoop.fs.o3fs.impl=org.apache.hadoop.fs.ozone.OzoneFileSystem --conf spark.hadoop.ozone.om.address=$OZONEMANAGER0:30862 --conf spark.kubernetes.container.image.pullPolicy=Always"
-
+echo "********************************************************************************************************"
 echo "run the following at spark shell to simulate distributed read/write to Ozone using OzoneFileSystem client"
-echo "sc.parallelize(Array(1,2,3,4,5)).saveAsTextFile('o3fs://warehouse.s3volume01/folder01')"
-echo "spark.read.textFile('o3fs://warehouse.s3volume01/folder01').select('value').show"
+echo "********************************************************************************************************"
+echo "sc.parallelize(Array(1,2,3,4,5)).saveAsTextFile(\"o3fs://warehouse.s3volume01/folder01\")"
+echo "spark.read.textFile(\"o3fs://warehouse.s3volume01/folder01\").select(\"value\").show"
 
 #from external cluster
 #fs.s3a.endpoint=xxx:30878
