@@ -173,7 +173,7 @@ echo "run the following at spark shell to simulate distributed read/write to Ozo
 echo "********************************************************************************************************"
 echo "sc.parallelize(Array(1,2,3,4,5)).saveAsTextFile(\"s3a://warehouse/folder02\")"
 echo "spark.read.textFile(\"s3a://warehouse/folder01\").select(\"value\").show"
-
+echo "********************************************************************************************************"
 #from external cluster
 #fs.s3a.endpoint=xxx:30878
 #fs.s3a.access.key=volume01
