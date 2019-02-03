@@ -117,7 +117,12 @@ create_ozone_bucket_aws_cli () {
   echo "[default]" >> ~/.aws/credentials
   echo "aws_access_key_id = $1" >> ~/.aws/credentials
   echo "aws_secret_access_key = $1" >> ~/.aws/credentials
-
+  
+  DATANODE_STATE=$(kubectl get pods datanode-0 -o wide -o json |grep phase)
+  while [[ $DATANODE_STATE != *"Running"* ]]; do
+    DATANODE_STATE=$(kubectl get pods datanode-0 -o wide -o json |grep phase)
+    sleep 2
+  done
   aws s3api --endpoint-url http://$DATANODE0:30878 create-bucket --bucket=$2
 }
 
@@ -151,6 +156,23 @@ echo "run the following at spark shell to simulate distributed read/write to Ozo
 echo "********************************************************************************************************"
 echo "sc.parallelize(Array(1,2,3,4,5)).saveAsTextFile(\"o3fs://warehouse.s3volume01/folder01\")"
 echo "spark.read.textFile(\"o3fs://warehouse.s3volume01/folder01\").select(\"value\").show"
+echo "********************************************************************************************************"
+echo "DEMO SPARK ON FROM EXTERNAL SPARK OUTSIDE OF K8S <--> OZONE S3GATEWAY"
+echo "********************************************************************************************************"
+echo "spark-shell spark-shell \
+> --jars hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/hadoop-ozone-filesystem-0.4.0-SNAPSHOT.jar, \
+> hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-thirdparty-misc-0.2.0.jar, \
+> hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-proto-0.4.0-f283ffa-SNAPSHOT.jar \
+> --conf spark.hadoop.fs.s3a.endpoint=ip-172-31-92-171.ec2.internal:30878 \
+> --conf spark.hadoop.fs.s3a.access.key=volume01 \
+> --conf spark.hadoop.fs.s3a.secret.key=volume01 \
+> --conf spark.hadoop.fs.s3a.path.style.access=true \
+> --conf spark.hadoop.fs.s3a.connection.ssl.enabled=false
+echo "********************************************************************************************************"
+echo "run the following at spark shell to simulate distributed read/write to Ozone using S3AFileSystem client"
+echo "********************************************************************************************************"
+echo "sc.parallelize(Array(1,2,3,4,5)).saveAsTextFile(\"s3a://warehouse/folder02\")"
+echo "spark.read.textFile(\"s3a://warehouse/folder01\").select(\"value\").show"
 
 #from external cluster
 #fs.s3a.endpoint=xxx:30878
@@ -159,12 +181,3 @@ echo "spark.read.textFile(\"o3fs://warehouse.s3volume01/folder01\").select(\"val
 #fs.s3a.path.style.access=true
 #fs.s3a.connection.ssl.enabled=false
 #fs.o3fs.impl=org.apache.hadoop.fs.ozone.OzoneFileSystem
-#spark-shell --master local 
-#--jars hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/hadoop-ozone-filesystem-0.4.0-SNAPSHOT.jar, \
-#hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-thirdparty-misc-0.2.0.jar, \
-#hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-proto-0.4.0-f283ffa-SNAPSHOT.jar \  
-#--conf spark.hadoop.fs.s3a.endpoint=xxx:30878 \
-#--conf spark.hadoop.fs.s3a.access.key=volume01 \
-#--conf spark.hadoop.fs.s3a.secret.key=volume01 \
-#--conf spark.hadoop.fs.s3a.path.style.access=true \
-#--conf spark.hadoop.fs.s3a.connection.ssl.enabled=false \
