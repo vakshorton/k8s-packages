@@ -117,7 +117,12 @@ create_ozone_bucket_aws_cli () {
   echo "[default]" >> ~/.aws/credentials
   echo "aws_access_key_id = $1" >> ~/.aws/credentials
   echo "aws_secret_access_key = $1" >> ~/.aws/credentials
-
+  
+  DATANODE_STATE=$(kubectl get pods datanode-0 -o wide -o json |grep phase)
+  while [[ $DATANODE_STATE != *"Running"* ]]; do
+    DATANODE_STATE=$(kubectl get pods datanode-0 -o wide -o json |grep phase)
+    sleep 2
+  done
   aws s3api --endpoint-url http://$DATANODE0:30878 create-bucket --bucket=$2
 }
 
@@ -162,7 +167,7 @@ echo "spark.read.textFile(\"o3fs://warehouse.s3volume01/folder01\").select(\"val
 #spark-shell --master local 
 #--jars hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/hadoop-ozone-filesystem-0.4.0-SNAPSHOT.jar, \
 #hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-thirdparty-misc-0.2.0.jar, \
-#hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-proto-0.4.0-f283ffa-SNAPSHOT.jar \  
+#hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-proto-0.4.0-f283ffa-SNAPSHOT.jar \
 #--conf spark.hadoop.fs.s3a.endpoint=xxx:30878 \
 #--conf spark.hadoop.fs.s3a.access.key=volume01 \
 #--conf spark.hadoop.fs.s3a.secret.key=volume01 \
