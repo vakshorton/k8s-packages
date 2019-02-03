@@ -159,15 +159,15 @@ echo "spark.read.textFile(\"o3fs://warehouse.s3volume01/folder01\").select(\"val
 echo "********************************************************************************************************"
 echo "DEMO SPARK ON FROM EXTERNAL SPARK OUTSIDE OF K8S <--> OZONE S3GATEWAY"
 echo "********************************************************************************************************"
-echo "spark-shell spark-shell \
-> --jars hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/hadoop-ozone-filesystem-0.4.0-SNAPSHOT.jar, \
-> hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-thirdparty-misc-0.2.0.jar, \
-> hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-proto-0.4.0-f283ffa-SNAPSHOT.jar \
-> --conf spark.hadoop.fs.s3a.endpoint=ip-172-31-92-171.ec2.internal:30878 \
-> --conf spark.hadoop.fs.s3a.access.key=volume01 \
-> --conf spark.hadoop.fs.s3a.secret.key=volume01 \
-> --conf spark.hadoop.fs.s3a.path.style.access=true \
-> --conf spark.hadoop.fs.s3a.connection.ssl.enabled=false
+echo "spark-shell \
+--jars hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/hadoop-ozone-filesystem-0.4.0-SNAPSHOT.jar, \
+hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-thirdparty-misc-0.2.0.jar, \
+hadoop/hadoop-ozone/dist/target/ozone-0.4.0-SNAPSHOT/share/ozone/lib/ratis-proto-0.4.0-f283ffa-SNAPSHOT.jar \
+--conf spark.hadoop.fs.s3a.endpoint=ip-172-31-92-171.ec2.internal:30878 \
+--conf spark.hadoop.fs.s3a.access.key=volume01 \
+--conf spark.hadoop.fs.s3a.secret.key=volume01 \
+--conf spark.hadoop.fs.s3a.path.style.access=true \
+--conf spark.hadoop.fs.s3a.connection.ssl.enabled=false
 echo "********************************************************************************************************"
 echo "run the following at spark shell to simulate distributed read/write to Ozone using S3AFileSystem client"
 echo "********************************************************************************************************"
